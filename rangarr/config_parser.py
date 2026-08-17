@@ -74,6 +74,11 @@ SETTINGS_SCHEMA = {
         'default': None,
         'type': int,
     },
+    'request_timeout': {
+        'default': 30,
+        'type': int,
+        'min_value': 1,
+    },
     'run_interval_minutes': {
         'default': 60,
         'type': int,

@@ -240,6 +240,18 @@ global:
   # fetch_page_size: 5000  # Fewer round trips for very large libraries
 ```
 
+#### `request_timeout`
+
+**Type:** Integer | **Default:** `30` | **Minimum:** `1`
+
+Seconds to wait for each *arr API response before giving up on the request. Applies to every API call: list fetches, queue checks, tag lookups, and search commands. Raise this if logs show `Read timed out` errors against instances with very large libraries — wanted/missing queries can take a long time to generate when tens of thousands of records are missing. Lowering `fetch_page_size` reduces per-request work and is worth trying first.
+
+```yaml
+global:
+  request_timeout: 30    # Default — suitable for most setups
+  # request_timeout: 120  # Very large libraries or slow hosts
+```
+
 #### `max_queue_size`
 
 **Type:** Integer | **Default:** `0`

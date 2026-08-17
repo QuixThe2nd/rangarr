@@ -624,7 +624,7 @@ def test_arr_client_trigger_single(client_class: Any, item: Any, expected_payloa
         client.session.post.assert_called_once_with(
             expected_url,
             json=expected_payload,
-            timeout=15,
+            timeout=30,
         )
 
 
@@ -705,7 +705,7 @@ def test_check_connection(raises: requests.RequestException | None, expected: bo
     assert client.check_connection() == expected
 
     if raises is None:
-        client.session.get.assert_called_once_with('http://test/api/v3/tag', timeout=15)
+        client.session.get.assert_called_once_with('http://test/api/v3/tag', timeout=30)
         mock_response.raise_for_status.assert_called_once()
 
 

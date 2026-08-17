@@ -22,6 +22,7 @@ class ArrClient(ABC):
     """Abstract base class for *arr application clients."""
 
     DEFAULT_FETCH_PAGE_SIZE = 2000
+    DEFAULT_REQUEST_TIMEOUT = 30
     ENDPOINT_COMMAND = '/api/v3/command'
     ENDPOINT_QUALITY_PROFILE = '/api/v3/qualityprofile'
     ENDPOINT_QUEUE = '/api/v3/queue'
@@ -64,6 +65,7 @@ class ArrClient(ABC):
 
         self.dry_run = self.settings.get('dry_run', False)
         self.fetch_page_size = self.settings.get('fetch_page_size', self.DEFAULT_FETCH_PAGE_SIZE)
+        self.request_timeout = self.settings.get('request_timeout', self.DEFAULT_REQUEST_TIMEOUT)
         self.max_queue_size = self.settings.get('max_queue_size', 0)
         self._include_tag_ids: set[int] = set()
         self._exclude_tag_ids: set[int] = set()
@@ -88,7 +90,7 @@ class ArrClient(ABC):
         """Fetch all records from a non-paginated list endpoint."""
         url = f'{self.url}{endpoint}'
         try:
-            response = self.session.get(url, params=params or {}, timeout=30)
+            response = self.session.get(url, params=params or {}, timeout=self.request_timeout)
             response.raise_for_status()
             return response.json()
         except requests.RequestException as error:
@@ -118,7 +120,7 @@ class ArrClient(ABC):
                 'pageSize': page_size,
             }
             try:
-                response = self.session.get(url, params=params, timeout=30)
+                response = self.session.get(url, params=params, timeout=self.request_timeout)
                 response.raise_for_status()
                 records = response.json().get('records', [])
                 result.extend(records)
@@ -284,7 +286,7 @@ class ArrClient(ABC):
         if include_names or exclude_names:
             url = f'{self.url}{self.ENDPOINT_TAG}'
             try:
-                response = self.session.get(url, timeout=15)
+                response = self.session.get(url, timeout=self.request_timeout)
                 response.raise_for_status()
                 tag_map = {tag['label'].lower(): tag['id'] for tag in response.json()}
                 self._include_tag_ids = self._resolve_tag_names(tag_map, include_names)
@@ -324,7 +326,7 @@ class ArrClient(ABC):
             url = f'{self.url}{self.ENDPOINT_COMMAND}'
             payload = {'name': self._command_name, self._id_field: [item_id]}
             try:
-                response = self.session.post(url, json=payload, timeout=15)
+                response = self.session.post(url, json=payload, timeout=self.request_timeout)
                 response.raise_for_status()
                 logger.info(f'[{self.name}] Searching ({reason}): {title} ({index}/{total})')
             except requests.RequestException as error:
@@ -338,7 +340,7 @@ class ArrClient(ABC):
         """Return True if the tag endpoint is reachable, False on any network error."""
         url = f'{self.url}{self.ENDPOINT_TAG}'
         try:
-            response = self.session.get(url, timeout=15)
+            response = self.session.get(url, timeout=self.request_timeout)
             response.raise_for_status()
             return True
         except requests.RequestException:
@@ -358,7 +360,7 @@ class ArrClient(ABC):
         while True:
             params = {'page': current_page, 'pageSize': page_size}
             try:
-                response = self.session.get(url, params=params, timeout=30)
+                response = self.session.get(url, params=params, timeout=self.request_timeout)
                 response.raise_for_status()
                 records = response.json().get('records', [])
                 depth += sum(1 for record in records if record.get('status', '').lower() in _ACTIVE_QUEUE_STATUSES)
@@ -800,7 +802,7 @@ class SonarrClient(ArrClient):
             url = f'{self.url}{self.ENDPOINT_COMMAND}'
             payload = {'name': 'SeasonSearch', 'seriesId': series_id, 'seasonNumber': season_number}
             try:
-                response = self.session.post(url, json=payload, timeout=15)
+                response = self.session.post(url, json=payload, timeout=self.request_timeout)
                 response.raise_for_status()
                 logger.info(f'[{self.name}] Searching ({reason}): {title} ({index}/{total})')
             except requests.RequestException as error:

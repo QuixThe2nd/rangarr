@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `request_timeout` setting (default `30` seconds, minimum `1`). All *arr API requests previously used hardcoded timeouts (30s for list fetches, 15s for everything else); every request now uses this single configurable value. Raise it for instances with very large libraries where wanted/missing queries exceed the old limits.
+
 ## [0.10.0] - 2026-07-15
 
 ### Added
